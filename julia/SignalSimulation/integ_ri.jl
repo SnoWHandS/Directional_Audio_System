@@ -127,7 +127,7 @@ B = 20000 # filter bandwidth
 H = rect.(ω/(2*pi*B)) + rect.( (ω .- 2*pi/Δt)/(2*pi*B) )    #rect at w/B + rect at w-t/B
 
 #apply LPF
-YY_mod_sqr_derv2_LPF = (YY_mod_sqr_derv2).*H
+YY_mod_sqr_derv2_LPF = abs.((YY_mod_sqr_derv2)).*H
 
 #yout=ifft(YY_mod_sqr_LPF)
 
