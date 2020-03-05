@@ -1,6 +1,7 @@
 using PyPlot
 using Statistics
 using FFTW
+using DSP
 
 #Initialise sampling constants
 Tsim=1              #1second for simulation
@@ -68,38 +69,43 @@ y′=integrate(x.-mean(x),Δt)     #perform first integral of the audio signal
 y′′=integrate(y′.-mean(y′),Δt)   #perform second integral of the audio signal
 y′′=y′′.-minimum(y′′)           #shifts the signal to above 0
 yout = y′′.^(1/2)               #Square root the signal to mitigate the squareing of the non-linear medium
-
+yout_mod=yout.*x_carrier                        #Modulate the preprocessed signal with the 40KHz carrier
+#Generate FFTs of the signals (Results more visible)
+X=fftshift(abs.(fft(x)))
+Y′=fftshift(abs.(fft(y′)))
+Y′′=fftshift(abs.(fft(y′′)))
+YOUT=fftshift(abs.(fft(yout)))
+YOUT_MOD=fftshift(abs.(fft(yout_mod)))
 #Plot the signal through its processing chain
 close("all")
 
 figure(1)
 subplot(2,1,1)
-plot(t,x)
+plot(f_axis,X)
 title("Audio Signal to be processed")
-xlabel("t")
-ylabel("x")
+xlabel("Frequency")
+ylabel("X(ω)")
 
 subplot(2,1,2)
-plot(t,y′)
-title("Audio Signal with first integral applied")
-xlabel("t")
-ylabel("y ′")
+plot(f_axis,Y′′)
+title("Audio Signal with second integral applied")
+xlabel("Frequency ω")
+ylabel("Y ′′(ω)")
 
 figure(2)
 subplot(2,1,1)
-plot(t,y′′)
-title("Audio Signal with second integral applied")
-xlabel("t")
-ylabel("y ′′")
+plot(f_axis,YOUT)
+title("Audio Signal with double integral and square root applied")
+xlabel("Frequency ω")
+ylabel("Vout(ω)")
 
 subplot(2,1,2)
-plot(t,yout)
-title("Audio Signal with double integral and square root applied")
-xlabel("t")
-ylabel("V out")
+plot(f_axis,YOUT_MOD)
+title("Audio Signal with double integral and square root applied modulated up to 40KHz")
+xlabel("Frequency ω")
+ylabel("Vout_mod(ω)")
 
 #Simulate the signal in the air with the appropriate governing equation applied to its
-yout_mod=yout.*x_carrier                        #Modulate the preprocessed signal with the 40KHz carrier
 yout_mod_sqr = yout_mod.^2                      #Square the output
 yout_mod_sqr_dt1 = deriv(yout_mod_sqr,Δt)       #Differentiate signal once
 yout_mod_sqr_dt2 = deriv(yout_mod_sqr_dt1,Δt)   #Differentiate signal again
@@ -109,20 +115,35 @@ yout_mod_sqr_dt2 = deriv(yout_mod_sqr_dt1,Δt)   #Differentiate signal again
 ω = 0:Δω:(N-1)*Δω
 B = 40000                                       # filter bandwidth of 40KHz to span from -20 to 20 KHz
 H = rect.(ω/(2*pi*B)) + rect.( (ω .- 2*pi/Δt)/(2*pi*B) )    #rect at w/B + rect at w-t/B
+Hs=[i[1] for i in H]                            #Change type from Array{Array{Float64,1},1} to Array{Float64,1} so iFFT works
 
 #transform function into frequency domain
-YOUT_Demod = abs.(fft(yout_mod_sqr_dt2))
+YOUT_Demod = (1/10000000).*abs.(fft(yout_mod_sqr_dt2))
 #Apply filter
-YOUT_LPF = YOUT_Demod.*H
+YOUT_LPF = YOUT_Demod.*Hs
 #transform back to time domain
-#yout_lpf = ifft(YOUT_LPF)
+yout_lpf = (20000000).*ifft(YOUT_LPF)
 
 #Plot outputs
 figure(3)
 subplot(2,1,1)
+plot(f_axis,fftshift(YOUT_Demod))
+plot(f_axis,fftshift(Hs))
+title("LPF and YOUT in frequency domain")
+xlabel("Frequency ω")
+ylabel("YOUT_Demod(ω)")
+subplot(2,1,2)
 plot(f_axis,fftshift(YOUT_LPF))
 title("H x YOUT in frequency domain")
+xlabel("Frequency ω")
+ylabel("YOUT_LPF(ω)")
 
-#subplot(2,1,2)
-#plot(t,yout_lpf)
-#title("yout in time domain")
+figure(4)
+#Adjust end points of plot due to discontinuities at start and end
+nStart=Int(round(0.45500/Δt))
+nEnd=Int(round(0.45800/Δt))
+plot(t[nStart:nEnd],yout_lpf[nStart:nEnd])
+title("yout in time domain after non-linear demodulation and original waveform")
+plot(t[nStart:nEnd],x[nStart:nEnd])
+xlabel("Time (s)")
+ylabel("Yout & Vout")
