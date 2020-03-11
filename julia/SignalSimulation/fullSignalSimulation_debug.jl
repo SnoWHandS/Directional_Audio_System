@@ -14,7 +14,7 @@ f_samp=200000       #sample rate of output (artificially high since 40Khz carrie
 N=Int(round(Tsim/Δt))      #The number of samples
 
 #Initialise signal constants
-f0=500         #Audio signal frequency
+f0=1000         #Audio signal frequency
 t=(0:N-1)*Δt    #Define time axis
 ω0=2*π*f0        #Define Omega 0 for convenience
 fc=40000        #Define the carrier signal's frequency
@@ -48,6 +48,7 @@ function deriv(x,Δt)
     for n=2:N
        y[n]=(x[n]-x[n-1])/Δt
     end
+    #y[1]=y[2]
     return y
 end
 
@@ -81,12 +82,13 @@ end
 x=12*sin.(ω0*t)               #create the audio signal
 x_carrier=cos.(ωc*t)       #Create the carrier signal
 #Pre-process signal             #Perform a double integral to mitigate the double derivative caused by the non-linear medium
-y′=integrate(x.-mean(x),Δt)     #perform first integral of the audio signal
-y′′=integrate(y′.-mean(y′),Δt)   #perform second integral of the audio signal
-#y′′=integrate(y′,Δt)
-y′′=y′′.-minimum(y′′)           #shifts the signal to above 0
-yout = y′′.^(1/2)               #Square root the signal to mitigate the squareing of the non-linear medium
-yout_mod=yout.*x_carrier                        #Modulate the preprocessed signal with the 40KHz carrier
+y′=integrate(x,Δt)     #perform first integral of the audio signal
+#Find median/center and deduct from current value to set it at origin (find missing +C constant to set to origin)
+y′=y′.-(mean(y′))
+y′′=integrate(y′,Δt)   #perform second integral of the audio signal
+#y′′=y′′.-minimum(y′′)           #shifts the signal to above 0
+yout = y′′                      #.^(1/2)               #Square root the signal to mitigate the squareing of the non-linear medium
+yout_mod=yout                   #.*x_carrier                        #Modulate the preprocessed signal with the 40KHz carrier
 #Generate FFTs of the signals (Results more visible)
 X=fftshift(abs.(fft(x)))
 Y′=fftshift(abs.(fft(y′)))
@@ -95,6 +97,43 @@ YOUT=fftshift(abs.(fft(yout)))
 YOUT_MOD=fftshift(abs.(fft(yout_mod)))
 #Plot the signal through its processing chain
 close("all")
+
+y′′=shiftBackBy(y′′,2)
+y′_derive=(1/10000)*deriv(y′′,Δt)
+y′_derive2=(1/10000)*deriv(y′_derive,Δt)
+yshift1 = shiftBackBy(y′_derive2,1)
+
+x_int=integrate(x,Δt)
+#Find median/center and deduct from current value to set it at origin (find missing +C constant to set to origin)
+x_int=x_int.-(mean(x_int))
+#x_int=shiftBackBy(x_int,1)
+
+x_int2=integrate(x_int,Δt)
+#x_int2=shiftBackBy(x_int2,1)
+
+
+
+x_der=deriv(x_int2,Δt)
+x_der=shiftBackBy(x_der,1)
+
+x_der2=deriv(x_der,Δt)
+x_der2=shiftBackBy(x_der2,1)
+
+
+figure(5)
+#Adjust end points of plot due to discontinuities at start and end
+nStart=1#Int(round(0.0001/Δt))
+nEnd=Int(round(0.0150/Δt))
+plot(t[nStart:nEnd],x[nStart:nEnd], ".")
+#plot(t[nStart:nEnd],x_der2[nStart:nEnd], ".")
+#plot(t[nStart:nEnd],y′′[nStart:nEnd], ".")
+#plot(t[nStart:nEnd],x_int[nStart:nEnd], ".")
+plot(t[nStart:nEnd],x_der2[nStart:nEnd], ".")
+title("yout in time domain after non-linear demodulation and original waveform")
+xlabel("Time (s)")
+ylabel("Yout & Vout")
+
+
 
 figure(1)
 subplot(2,1,1)
@@ -123,7 +162,7 @@ xlabel("Frequency ω")
 ylabel("Vout_mod(ω)")
 
 #Simulate the signal in the air with the appropriate governing equation applied to its
-yout_mod_sqr = yout_mod.^2                      #Square the output
+yout_mod_sqr = yout_mod             #.^2                      #Square the output
 
 
 
@@ -134,17 +173,19 @@ B = 30000                                       # filter bandwidth of 40KHz to s
 H = rect.(ω/(2*pi*B)) + rect.( (ω .- 2*pi/Δt)/(2*pi*B) )    #rect at w/B + rect at w-t/B = __|----|__
 Hs=[i[1] for i in H]                            #Change type from Array{Array{Float64,1},1} to Array{Float64,1} so iFFT works
 
+yout_mod_sqr_dt1_lpf = deriv(yout_mod_sqr,Δt)       #Differentiate signal once
+yout_mod_sqr_dt1_lpf=shiftBackBy(yout_mod_sqr_dt1_lpf,1)
+yout_mod_sqr_dt2 = deriv(yout_mod_sqr_dt1_lpf,Δt)   #Differentiate signal again
+yout_mod_sqr_dt2=shiftBackBy(yout_mod_sqr_dt2,1)
+
+
 #transform function into frequency domain
-YOUT_sqr = fft(yout_mod_sqr)
+YOUT_sqr = fft(yout_mod_sqr_dt2)
 #Apply filter
 YOUT_sqr_LPF = YOUT_sqr.*Hs
 
-yout_mod_sqr_lpf = 2*real(ifft(YOUT_sqr_LPF))
+yout_demod_sqr_lpf = ifft(YOUT_sqr_LPF)
 
-yout_mod_sqr_dt1_lpf = deriv(yout_mod_sqr_lpf,Δt)       #Differentiate signal once
-yout_mod_sqr_dt1_lpf = shiftBackBy(yout_mod_sqr_dt1_lpf,1)
-yout_mod_sqr_dt2 = deriv(yout_mod_sqr_dt1_lpf,Δt)   #Differentiate signal again
-yout_mod_sqr_dt2 = shiftBackBy(yout_mod_sqr_dt2,1)
 #transform back to time domain and multiply by 2 (since ifft has 1/2 factor on its result)
 #yout_lpf = (2).*ifft(YOUT_LPF)
 
@@ -164,11 +205,11 @@ ylabel("YOUT_LPF(ω)")
 
 figure(4)
 #Adjust end points of plot due to discontinuities at start and end
-nStart=Int(round(Δt/Δt))
-nEnd=Int(round(0.0060/Δt))
-plot(t[nStart:nEnd],yout_mod_sqr_dt2[nStart:nEnd], ".")
+nStart=Int(round(0.45500/Δt))
+nEnd=Int(round(0.45700/Δt))
+plot(t[nStart:nEnd],yout_demod_sqr_lpf[nStart:nEnd])
 title("yout in time domain after non-linear demodulation and original waveform")
-plot(t[nStart:nEnd],x[nStart:nEnd], ".")
+plot(t[nStart:nEnd],x[nStart:nEnd])
 xlabel("Time (s)")
 ylabel("Yout & Vout")
 

@@ -3,7 +3,7 @@ using Statistics
 using FFTW
 using PortAudio
 
-Tsim=2              #1second for simulation
+Tsim=3              #1second for simulation
 f_samp=44100
 Δt=1/f_samp         #seconds: inverse of sample rate
 N=Int(Tsim/Δt)
@@ -39,7 +39,7 @@ x=sin.(2*pi*f0*t)               #Create the signgal
 x_mean=mean(x)                  #Find average of signal
 
 y′=integrate(x.-mean(x),Δt)     #first integral
-y′′=integrate(y.-mean(y′),Δt)   #second integral
+y′′=integrate(y′.-mean(y′),Δt)   #second integral
 y′′=y′′.-minimum(y′′)              #shifts to above 0
 
 y_env = A*y′′.^(1/2)
