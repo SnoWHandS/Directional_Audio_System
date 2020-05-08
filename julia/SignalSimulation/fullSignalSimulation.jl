@@ -85,8 +85,8 @@ y′=integrate(x.-mean(x),Δt)     #perform first integral of the audio signal
 y′′=integrate(y′.-mean(y′),Δt)   #perform second integral of the audio signal
 #y′′=integrate(y′,Δt)
 y′′=y′′.-minimum(y′′)           #shifts the signal to above 0
-yout = y′′.^(1/2)               #Square root the signal to mitigate the squareing of the non-linear medium
-yout_mod=yout.*x_carrier                        #Modulate the preprocessed signal with the 40KHz carrier
+yout = y′′.^(1/2)               #Square root the signal to mitigate the squaring of the non-linear medium
+yout_mod=yout.*x_carrier        #Modulate the preprocessed signal with the 40KHz carrier
 #Generate FFTs of the signals (Results more visible)
 X=fftshift(abs.(fft(x)))
 Y′=fftshift(abs.(fft(y′)))
@@ -139,7 +139,7 @@ YOUT_sqr = fft(yout_mod_sqr)
 #Apply filter
 YOUT_sqr_LPF = YOUT_sqr.*Hs
 
-yout_mod_sqr_lpf = 2*real(ifft(YOUT_sqr_LPF))
+yout_mod_sqr_lpf = 2*real(ifft(YOUT_sqr_LPF))   #Extract  time-domain
 
 yout_mod_sqr_dt1_lpf = deriv(yout_mod_sqr_lpf,Δt)       #Differentiate signal once
 yout_mod_sqr_dt1_lpf = shiftBackBy(yout_mod_sqr_dt1_lpf,1)

@@ -37,16 +37,6 @@ function rect(t)
 end
 
 
-#Function for integrating a signal via Riemann sums
-function integrate(x, Δt)
-    N=length(x)
-    y=zeros(N);
-    for n=2:N
-        y[n]=x[n-1]*Δt + y[n-1]
-    end
-    return y
-end
-
 #Function for high pass filtering a time domain
 function hpf(in_signal, time_step, cutoff_freq)
     out_signal = Array{Float64}(undef, length(in_signal));
@@ -64,26 +54,7 @@ println("Recording $(Nseconds) seconds of sampled audio")
 buf_read = read(stream,N)
 buf = buf_read
 
-
-
-println("Playing original $(Nseconds) seconds of sampled audio")
-
 println("Processing $(Nseconds) seconds of sampled audio")
-
-#Shift function to above 0 for preprocessing
-buf = buf_read
-
-#integrate once with function centered at 0
-y1 = integrate(buf, Δt)
-Y1 = fft(y1)
-y1_filt = hpf(y1,Δt,80)
-Y1_filt = fft(y1_filt)
-#integrate twice
-y2 = integrate(y1_filt, Δt)
-Y2 = fft(y2)
-y2 = hpf(y2,Δt,160)
-y2_filt = hpf(y2,Δt,160)
-Y2_filt = fft(y2_filt)
 
 #Shift function to above 0 for preprocessing
 buf = buf_read.-minimum(buf_read)
@@ -93,35 +64,13 @@ buf = sqrt.(buf)
 
 close("all")
 figure(2)
-nStart=Int(round(Δt/Δt))
-nEnd=Int(round(N*Δt/Δt))
-subplot(3,1,1)
-plot(t[nStart:nEnd],y1_filt[nStart:nEnd])
-xlabel("y1 output")
-subplot(3,1,2)
-plot(f_axis,abs.(fftshift(Y1)))
-xlabel("FFT of Y1")
-subplot(3,1,3)
-plot(f_axis,abs.(fftshift(Y1_filt)))
-xlabel("FFT of Y1 filtered")
-
-figure(3)
-nStart=Int(round(Δt/Δt))
-nEnd=Int(round(N*Δt/Δt))
-subplot(3,1,1)
-plot(t[nStart:nEnd],y2_filt[nStart:nEnd])
-xlabel("y2 output")
-subplot(3,1,2)
-plot(f_axis,abs.(fftshift(Y2)))
-xlabel("FFT of Y2")
-subplot(3,1,3)
-plot(f_axis,abs.(fftshift(Y2_filt)))
-xlabel("FFT of Y2 filtered")
 
 #filter away DC
 buf = hpf(buf,Δt,75)
 
 #shift center back to 0 and amplify to be audible
+hpfmin=minimum(buf)
+hpfmax=maximum(buf)
 buf = A*buf
 
 BUF = fft(buf)

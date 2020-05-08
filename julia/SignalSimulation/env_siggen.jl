@@ -3,18 +3,19 @@ using Statistics
 using FFTW
 using PortAudio
 
-Tsim=3              #1second for simulation
+Tsim=15              #1second for simulation
 f_samp=44100
 Δt=1/f_samp         #seconds: inverse of sample rate
 N=Int(round(Tsim/Δt))
 
 
-f0=5000             #Freq of test signal
+f0=1000             #Freq of test signal
 t=(0:N-1)*Δt        #time axis def
 ω=2*π*f0            #angular Freq
 
-A=10000                #scaling factor for envelope function
-
+A=4250                #scaling factor for envelope function
+                        #1Khz A = 4250
+                        #5Khz A +- = 21500
 Δf=1/(N*Δt)
 f=0:(N-1)*Δf
 #create array of freq values stored in f_axis. First element maps to 0Hz

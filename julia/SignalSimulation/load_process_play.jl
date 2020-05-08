@@ -1,12 +1,14 @@
 using PortAudio, Statistics, PyPlot, FFTW
+using FileIO: load, save, loadstreaming, savestreaming
+using LibSndFile
 
 stream = PortAudioStream(1, 1, blocksize=1024)
 
 offset = 20
 
-A = 1.75                       #Amplitude multiple for final output signal
+A = 2250                       #Amplitude multiple for final output signal
 sample_rate = 44100
-Nseconds = 10
+Nseconds = 3
 N = Nseconds * sample_rate
 Δt=1/sample_rate                 #seconds: inverse of sample rate
 t=(0:N-1)*Δt                    #time axis def
@@ -59,9 +61,10 @@ function hpf(in_signal, time_step, cutoff_freq)
     return out_signal;
 end;
 
-println("Recording $(Nseconds) seconds of sampled audio")
+println("loading sampled audio")
 
-buf_read = read(stream,N)
+buf_read = load(joinpath(homedir(), "Desktop", "input.wav"))
+
 buf = buf_read
 
 
@@ -92,6 +95,7 @@ buf = buf_read.-minimum(buf_read)
 buf = sqrt.(buf)
 
 close("all")
+#=
 figure(2)
 nStart=Int(round(Δt/Δt))
 nEnd=Int(round(N*Δt/Δt))
@@ -117,7 +121,7 @@ xlabel("FFT of Y2")
 subplot(3,1,3)
 plot(f_axis,abs.(fftshift(Y2_filt)))
 xlabel("FFT of Y2 filtered")
-
+=#
 #filter away DC
 buf = hpf(buf,Δt,75)
 
@@ -130,19 +134,19 @@ BUF_READ = fft(buf_read)
 figure(1)
 nStart=Int(round(0.0025/Δt))        #Artifact with samples before 0.0025s = 2.5ms
 nEnd=Int(round(N*Δt/Δt))
-subplot(4,1,1)
+subplot(2,1,1)
 plot(t[nStart:nEnd],buf[nStart:nEnd])
 xlabel("envelope output")
-subplot(4,1,2)
+subplot(2,1,2)
 plot(t[nStart:nEnd],buf_read[nStart:nEnd])
 xlabel("original output")
-subplot(4,1,3)
+#=subplot(4,1,3)
 plot(f_axis,abs.(fftshift(BUF_READ)))
 xlabel("FFT of original")
 subplot(4,1,4)
 plot(f_axis,abs.(fftshift(BUF)))
 xlabel("FFT of output")
-
+=#
 
 println("Playing $(Nseconds) seconds of sampled audio")
 
