@@ -31,14 +31,32 @@ global A=zeros(N,N);			#define whole grid - Aperture distribution (E Field stren
 dimx=5
 dimy=5
 offset=0
-#fill in the square grid
+
+#make a circle of circles
+(dx,dy)=(100,100)
+(x1,y1)=250,250
+r1=200
+for i=1:N
+    for j=1:N
+        x = i*dx
+        y = j*dy
+        R = sqrt( (x1-x)^2 + (y1-y)^2 )
+        if R<=r1
+            fill_tx(x0+(i*2*r0+offset),y0+(j*2*r0+offset),r0)
+        end
+    end
+end
+
+#=fill in the square grid
 for i=1:dimx
     for j=1:dimy
         fill_tx(x0+(i*2*r0+offset),y0+(j*2*r0+offset),r0)
     end
 end
+=#
+close("all")
 
-clf()
+
 figure(1)
 surf(A)					#plot the surface
 
@@ -50,3 +68,7 @@ ax = gca()
 
 # add new limits from 0 - n*9
 ax.set_zlim([0,9000])
+
+figure(3)
+mycolormap = "hot"  # "hsv" "grey" etc.
+imshow(A); colorbar()
