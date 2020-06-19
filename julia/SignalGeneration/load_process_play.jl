@@ -65,10 +65,6 @@ println("loading sampled audio")
 
 buf_read = load(joinpath(homedir(), "Desktop", "input.wav"))
 
-buf = buf_read
-
-
-
 println("Playing original $(Nseconds) seconds of sampled audio")
 
 println("Processing $(Nseconds) seconds of sampled audio")
@@ -90,6 +86,17 @@ Y2_filt = fft(y2_filt)
 
 #Shift function to above 0 for preprocessing
 buf = buf_read.-minimum(buf_read)
+
+figure(2)
+nStart=Int(round(0.0025/Δt))        #Artifact with samples before 0.0025s = 2.5ms
+nEnd=Int(round(N*Δt/Δt))
+subplot(2,1,1)
+plot(t[nStart:nEnd],buf_read[nStart:nEnd])
+xlabel("original")
+subplot(2,1,2)
+plot(t[nStart:nEnd],buf[nStart:nEnd])
+xlabel("shifted before squareroot")
+
 
 #Perform a square root of the samples
 buf = sqrt.(buf)

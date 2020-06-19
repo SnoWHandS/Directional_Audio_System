@@ -14,21 +14,29 @@ x_axis = 0:dx:(N-1)*dx
 y_axis = 0:dy:(N-1)*dy
 
 function fill_circle(x0,y0,r0,fill_value,A)
-# This function fills a circle, centres (x0,y0) of radius r with ones inside matrix A
-# Array A is passed by reference
-(Ncols,Nrows)=size(A)
-    for i=1:Ncols; 
-         for j=1:Nrows
-           x = i*dx
-           y = j*dy
-           R = sqrt( (x-x0)^2 + (y-y0)^2 )
-           if R<=r0
-             A[i,j]=fill_value
-           end
-         end
+  # This function fills a circle, centres (x0,y0) of radius r with ones inside matrix A
+  # Array A is passed by reference
+  (Ncols,Nrows)=size(A)
+  
+  i0=x0/dx
+  j0=y0/dy
+  iStart=Int(round(i0-(r0/dx+1)))
+  iEnd=Int(round(i0+(r0/dx+1)))
+  jStart=Int(round(j0-(r0/dy+1)))
+  jEnd=Int(round(j0+(r0/dy+1)))
+  
+  for i=iStart:iEnd; 
+    for j=jStart:jEnd
+      x = i*dx
+      y = j*dy
+      R = sqrt( (x-x0)^2 + (y-y0)^2 )
+      if R<=r0
+        A[i,j]=fill_value
+      end
     end
-end
+  end
 
+end
 function createArray(x1,y1,r1)
   (Ncols,Nrows)=size(A)
   for i=1:Ncols; 

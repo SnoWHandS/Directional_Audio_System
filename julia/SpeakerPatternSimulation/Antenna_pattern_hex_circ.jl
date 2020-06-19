@@ -25,16 +25,17 @@ iEnd=Int(round(i0+(r0/dx+1)))
 jStart=Int(round(j0-(r0/dy+1)))
 jEnd=Int(round(j0+(r0/dy+1)))
 
-    for i=iStart:iEnd; 
-         for j=jStart:jEnd
-           x = i*dx
-           y = j*dy
-           R = sqrt( (x-x0)^2 + (y-y0)^2 )
-           if R<=r0
-             A[i,j]=fill_value
-           end
-         end
+for i=iStart:iEnd; 
+  for j=jStart:jEnd
+    x = i*dx
+    y = j*dy
+    R = sqrt( (x-x0)^2 + (y-y0)^2 )
+    if R<=r0
+      A[i,j]=fill_value
     end
+  end
+end
+
 end
 
 function createArray(x1,y1,r1)
