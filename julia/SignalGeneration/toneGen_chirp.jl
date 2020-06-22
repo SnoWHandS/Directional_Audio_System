@@ -3,11 +3,11 @@ using PyPlot     # This library is already installed in juliabox
 using Statistics
 
 Δt = 0.0000125  # time step  (to get Greek sybmol, type \Delta <tab>)
-t = 0:Δt:30;  #Define time from 0 to 1s in steps of 0.001s
+t = 0:Δt:0.5;  #Define time from 0 to 1s in steps of 0.001s
 
 println("length(t) = ",length(t))
 
-f0 = 2500  # 1000 Hz signal to be modulated
+f0 = 1000  # 1000 Hz signal to be modulated
 ω0 = 2*pi*f0;   # rad/s   ( Greek symbol \omega <tab>  )
 A = 1    #2v p-p
 

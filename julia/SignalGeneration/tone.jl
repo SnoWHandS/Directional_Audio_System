@@ -76,10 +76,6 @@ println("Processing $(Nseconds) seconds of sampled audio")
 #Shift function to above 0 for preprocessing
 buf = buf_read.-minimum(buf_read)
 
-#Perform a square root of the samples
-buf = sqrt.(buf)
-
-#filter away DC
 buf = hpf(buf,Δt,75)
 
 #shift center back to 0 and amplify to be audible

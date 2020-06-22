@@ -6,7 +6,7 @@ offset = 20
 
 A = 1#4.75                       #Amplitude multiple for final output signal
 sample_rate = 44100
-Nseconds = 15
+Nseconds = 60
 N = Nseconds * sample_rate
 Δt=1/sample_rate                 #seconds: inverse of sample rate
 t=(0:N-1)*Δt                    #time axis def
