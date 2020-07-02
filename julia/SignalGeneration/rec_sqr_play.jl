@@ -6,7 +6,7 @@ offset = 20
 
 A = 1#4.75                       #Amplitude multiple for final output signal
 sample_rate = 44100
-Nseconds = 15
+Nseconds = 1
 N = Nseconds * sample_rate
 Δt=1/sample_rate                 #seconds: inverse of sample rate
 t=(0:N-1)*Δt                    #time axis def
@@ -95,20 +95,31 @@ BUF_READ = fft(buf_read)
 
 close("all")
 figure(1)
-nStart=Int(round(0.0025/Δt))        #Artifact with samples before 0.0025s = 2.5ms
-nEnd=Int(round(N*Δt/Δt))
-subplot(4,1,1)
-plot(t[nStart:nEnd],buf[nStart:nEnd])
-xlabel("envelope output")
-subplot(4,1,2)
+nStart=Int(round(0.01/Δt))        #Artifact with samples before 0.0025s = 2.5ms
+nEnd=Int(round(0.02/Δt))
+subplot(2,1,1)
+
 plot(t[nStart:nEnd],buf_read[nStart:nEnd])
-xlabel("original output")
-subplot(4,1,3)
+title("original output")
+xlabel("time (s)")
+ylabel("Audio Out (V)")
+subplot(2,1,2)
+plot(t[nStart:nEnd],buf[nStart:nEnd])
+title("envelope output")
+xlabel("time (s)")
+ylabel("Audio Out (V)")
+
+figure(2)
+subplot(2,1,1)
 plot(f_axis,abs.(fftshift(BUF_READ)))
-xlabel("FFT of original")
-subplot(4,1,4)
+title("FFT of original")
+xlabel("Frequency (Hz)")
+ylabel("Relative magnitude")
+subplot(2,1,2)
 plot(f_axis,abs.(fftshift(BUF)))
-xlabel("FFT of output")
+title("FFT of output")
+xlabel("Frequency (Hz)")
+ylabel("Relative magnitude")
 
 
 println("Playing $(Nseconds) seconds of sampled audio")

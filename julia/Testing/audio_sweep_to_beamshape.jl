@@ -128,3 +128,8 @@ title("FFT of filtered signal. Left to right sweep")
 xlabel("frequency (Hz)")
 ylabel("relative magnitude")
 
+figure(5)
+plot(f_axis[Int(round(length(f_axis)/2)):end],fftshift(abs.(BUF_fft))[Int(round(length(BUF_fft)/2)):end])
+title("FFT of signal, positive frequencies")
+xlabel("frequency (Hz)")
+ylabel("relative magnitude")

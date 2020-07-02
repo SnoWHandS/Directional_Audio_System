@@ -8,13 +8,13 @@ pygui(true)
 show()
 
 #Initialise sampling constants
-Tsim=1              #1second for simulation
+Tsim=0.05              #1second for simulation
 f_samp=200000       #sample rate of output (artificially high since 40Khz carrier is present)
 Δt=1/f_samp         #seconds: inverse of sample rate
 N=Int(round(Tsim/Δt))      #The number of samples
 
 #Initialise signal constants
-f0=500         #Audio signal frequency
+f0=1000         #Audio signal frequency
 t=(0:N-1)*Δt    #Define time axis
 ω0=2*π*f0        #Define Omega 0 for convenience
 fc=40000        #Define the carrier signal's frequency
@@ -97,27 +97,50 @@ YOUT_MOD=fftshift(abs.(fft(yout_mod)))
 close("all")
 
 figure(1)
-subplot(2,1,1)
+
+
+#=subplot(2,1,1)
 plot(f_axis,X)
-title("Audio Signal to be processed")
+title("FFT of Audio Signal to be processed")
 xlabel("Frequency")
 ylabel("X(ω)")
+=#
+
+subplot(2,1,1)
+plot(f_axis[Int(round(length(f_axis)/2)):end],Y′[Int(round(length(Y′)/2)):end])
+title("FFT of Audio Signal with first integral applied")
+xlabel("Frequency ω")
+ylabel("Y ′(ω)")
 
 subplot(2,1,2)
-plot(f_axis,Y′′)
-title("Audio Signal with second integral applied")
+plot(f_axis[Int(round(length(f_axis)/2)):end],Y′′[Int(round(length(Y′′)/2)):end])
+title("FFT of Audio Signal with second integral applied")
 xlabel("Frequency ω")
 ylabel("Y ′′(ω)")
 
+
+
 figure(2)
+#=subplot(2,1,1)
+plot(t,y′)
+title("Audio Signal with first integral applied")
+xlabel("time (t)")
+ylabel("y ′(t)")
+
+subplot(2,1,2)
+plot(t,y′′)
+title("Audio Signal with second integral applied")
+xlabel("time (t)")
+ylabel("y ′′(t)")
+=#
 subplot(2,1,1)
-plot(f_axis,YOUT)
+plot(f_axis[Int(round(length(f_axis)/2)):end],YOUT[Int(round(length(YOUT)/2)):end])
 title("Audio Signal with double integral and square root applied")
 xlabel("Frequency ω")
 ylabel("Vout(ω)")
 
 subplot(2,1,2)
-plot(f_axis,YOUT_MOD)
+plot(f_axis[Int(round(length(f_axis)/2)):end],YOUT_MOD[Int(round(length(YOUT_MOD)/2)):end])
 title("Audio Signal with double integral and square root applied modulated up to 40KHz")
 xlabel("Frequency ω")
 ylabel("Vout_mod(ω)")
@@ -145,6 +168,9 @@ yout_mod_sqr_dt1_lpf = deriv(yout_mod_sqr_lpf,Δt)       #Differentiate signal o
 yout_mod_sqr_dt1_lpf = shiftBackBy(yout_mod_sqr_dt1_lpf,1)
 yout_mod_sqr_dt2 = deriv(yout_mod_sqr_dt1_lpf,Δt)   #Differentiate signal again
 yout_mod_sqr_dt2 = shiftBackBy(yout_mod_sqr_dt2,1)
+
+YDT1 = fftshift(abs.(fft(yout_mod_sqr_dt1_lpf)))
+YDT2 = fftshift(abs.(fft(yout_mod_sqr_dt2)))
 #transform back to time domain and multiply by 2 (since ifft has 1/2 factor on its result)
 #yout_lpf = (2).*ifft(YOUT_LPF)
 
@@ -171,5 +197,30 @@ title("yout in time domain after non-linear demodulation and original waveform")
 plot(t[nStart:nEnd],x[nStart:nEnd], ".")
 xlabel("Time (s)")
 ylabel("Yout & Vout")
+
+figure(5)
+subplot(2,1,1)
+plot(t[nStart:nEnd],yout_mod_sqr_dt1_lpf[nStart:nEnd], ".")
+plot(t[nStart:nEnd],(1/500)*x[nStart:nEnd], ".")
+title("yout in time domain after first derivative and original waveform")
+xlabel("Time (s)")
+ylabel("Yout & Vout")
+subplot(2,1,2)
+plot(t[nStart:nEnd],yout_mod_sqr_dt2[nStart:nEnd], ".")
+plot(t[nStart:nEnd],(1/10)*x[nStart:nEnd], ".")
+title("yout in time domain after non-linear demodulation and original waveform")
+xlabel("Time (s)")
+ylabel("Yout & Vout")
+
+#=
+plot(f_axis,YDT1)
+title("signal after first derivative in frequency domain")
+xlabel("Frequency ω")
+ylabel("Yout_DT1(ω)")
+subplot(2,1,2)
+plot(f_axis,YDT2)
+title("signal after second derivative in frequency domain")
+xlabel("Frequency ω")
+ylabel("Yout_DT2(ω)")=#
 
 #additionally simulate the bandwidth of the ultrasonic transducers by applying filter to the signal which mimics its -3dB bandwidth

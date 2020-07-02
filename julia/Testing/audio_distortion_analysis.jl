@@ -1,4 +1,4 @@
-using Statistics, FFTW, SampledSignals, PyPlot, DSP, PortAudio
+using Statistics, FFTW, SampledSignals, PyPlot, DSP
 using FileIO: load, save, loadstreaming, savestreaming
 using LibSndFile
 
@@ -20,7 +20,7 @@ function rect(t)
 end
 
 
-stereo_buf_read = load(joinpath(homedir(), "OneDrive", "2020", "Research_Project", "Testing", "Rhode_mic", "Distortion", "SQRT2.wav"))
+stereo_buf_read = load(joinpath(homedir(), "OneDrive", "2020", "Research_Project", "Testing", "Rhode_mic", "Distortion", "SQRT1.wav"))
 
 buf_read = stereo_buf_read[:,1]     #convert to mono
 

@@ -1,3 +1,6 @@
+#Developed by Dillon Heald for use with a directional ultrasonic speaker array
+#Date: April 2020
+
 using PortAudio, Statistics, PyPlot, FFTW
 
 stream = PortAudioStream(1, 1, blocksize=1024)
